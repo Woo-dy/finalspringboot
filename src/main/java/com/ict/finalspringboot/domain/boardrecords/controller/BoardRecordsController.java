@@ -5,11 +5,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties.Authentication;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +32,27 @@ import lombok.extern.slf4j.Slf4j;
 public class BoardRecordsController {
     @Autowired
     private BoardRecordsService boardRecordsService;
+
+    @GetMapping("/list")
+    public DataVO getBoardRecordsList() {
+        DataVO dataVO = new DataVO();
+    
+        try {
+            log.info("Controller: getBoardRecordsList 호출");
+            List<BoardRecordsVO> list = boardRecordsService.getBoardRecordsList();
+            log.info("Controller: list : " + list);
+            dataVO.setSuccess(true);
+            dataVO.setMessage("게스트북 조회 성공");
+            dataVO.setData(list);
+        } catch (Exception e) {
+            dataVO.setSuccess(false);
+            dataVO.setMessage("게스트북 조회 실패: " + e.getMessage());
+            dataVO.setData(null);
+            e.printStackTrace();
+        }
+    
+        return dataVO;
+    }
 
     @PostMapping("/mybasicboardrecordswrite")
     public DataVO createBoardRecord(

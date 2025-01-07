@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BoardRecordsVO {
-   private String rx_idx, user_idx, rx_date, rx_phar_name, drug_idx, phar_idx, rx_photo;
+   private String rx_idx, user_idx, rx_date, rx_phar_name, drug_idx, phar_idx, rx_other, rx_photo;
    private MultipartFile file;
 }

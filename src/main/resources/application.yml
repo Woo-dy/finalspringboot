@@ -16,7 +16,7 @@ spring:
       name : finalspringboot
 
    datasource:
-      url : jdbc:mysql://localhost:3306/ictedu_db 
+      url : jdbc:mysql://localhost:3306/user_db 
       username : ictdeu
       password : 1111
       driver-class-name : com.mysql.cj.jdbc.Driver
@@ -44,21 +44,21 @@ spring:
 
 
 
-   # 파일 업로드 기능에서 파일이 저장될 물리적 경로를 명시.              
-   file:
-      upload-dir: C:/upload
+# 파일 업로드 기능에서 파일이 저장될 물리적 경로를 명시.              
+file:
+   upload-dir: C:/upload
 
-   server:
-      port: 8080
-      servlet:
-         context-path: /
+server:
+   port: 8080
+   servlet:
+      context-path: /
 
-   mybatis:
-      mapper-locations: mapper/*.xml
-      type-aliases-package: com.ict.finalspringboot
+mybatis:
+   mapper-locations : mapper/*.xml
+   type-aliases-package: com.ict.finalspringboot
 
-   # 비밀키 사용(32바이트길이)  
-   # 1 시간 = 1000ms * 60 * 60 ;
-   jwt:
-      secret : "abcdASDF1234abcdQWER0987poiuPOIU"
-      expiration : 3600000
+# 비밀키 사용(32바이트길이)  
+# 1 시간 = 1000ms * 60 * 60 ;
+jwt:
+   secret : "abcdASDF1234abcdQWER0987poiuPOIU"
+   expiration : 3600000
