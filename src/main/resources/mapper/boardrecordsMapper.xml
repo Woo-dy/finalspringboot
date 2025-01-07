@@ -8,6 +8,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<select id="getBoardRecordsList" resultType="BoardRecordsVO">
 		select * from user_rx_tbl order by rx_idx asc
 	</select>
+
+	<select id="getBoardRecordsById" parameterType="String"  resultType="BoardRecordsVO" >
+		select * from user_rx_tbl where rx_idx = #{rx_idx}
+	</select>
+
+	<delete id="getBoardRecordsDelete" parameterType="String">
+		delete from user_rx_tbl where rx_idx = #{rx_idx}
+	</delete>
+	
+	<update id="getBoardRecordsUpdate" parameterType="BoardRecordsVO">
+		update user_rx_tbl
+		set user_idx = #{user_idx},rx_date=#{rx_date}, rx_phar_name=#{rx_phar_name}, drug_idx=#{drug_idx}, phar_idx=#{phar_idx}, rx_other=#{rx_other}, rx_photo=#{rx_photo}
+		where rx_idx = #{rx_idx}
+	</update>
 </mapper>
 
 

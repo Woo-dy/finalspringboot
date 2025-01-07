@@ -6,14 +6,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties.Authentication;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,15 +46,63 @@ public class BoardRecordsController {
             List<BoardRecordsVO> list = boardRecordsService.getBoardRecordsList();
             log.info("Controller: list : " + list);
             dataVO.setSuccess(true);
-            dataVO.setMessage("게스트북 조회 성공");
+            dataVO.setMessage("진료 기록 조회 성공");
             dataVO.setData(list);
         } catch (Exception e) {
             dataVO.setSuccess(false);
-            dataVO.setMessage("게스트북 조회 실패: " + e.getMessage());
+            dataVO.setMessage("진료 기록 조회 실패: " + e.getMessage());
             dataVO.setData(null);
             e.printStackTrace();
         }
     
+        return dataVO;
+    }
+    
+    @PostMapping("/detail")
+    public DataVO getBoardRecordsDetail(@RequestBody Map<String, String> requestBody) {
+        DataVO dataVO = new DataVO();
+        String rx_idx = requestBody.get("rx_idx"); // POST 요청 본문에서 rx_idx를 가져옴
+        try {
+            log.info("rx_idx : " + rx_idx);
+            BoardRecordsVO brvo = boardRecordsService.getBoardRecordsById(rx_idx);
+            if (brvo == null) {
+                dataVO.setSuccess(false);
+                dataVO.setMessage("진료 기록 상세보기 실패1");
+                return dataVO;
+            }
+            dataVO.setSuccess(true);
+            dataVO.setMessage("진료 기록 상세보기 성공");
+            dataVO.setData(brvo);
+        } catch (Exception e) {
+            dataVO.setSuccess(false);
+            dataVO.setMessage("진료 기록 상세보기 실패2");
+        }
+        return dataVO;
+}
+
+    @DeleteMapping("/delete/{rx_idx}")
+    public DataVO getBoardRecordsDelete(@PathVariable("rx_idx") String rx_idx) {
+        DataVO dataVO = new DataVO();
+        
+        log.info("안녕하세요 " + rx_idx);
+
+        log.info("rx_idx222 : " + rx_idx);
+
+        try {
+            int result = boardRecordsService.getBoardRecordsDelete(rx_idx);
+            if (result == 0) {
+                dataVO.setSuccess(false);
+                dataVO.setMessage("진료 기록 삭제 실패");
+                return dataVO;
+            }
+            dataVO.setSuccess(true);
+            dataVO.setMessage("진료 기록 삭제 성공");
+            // dataVO.setData(result);
+        } catch (Exception e) {
+            dataVO.setSuccess(false);
+            dataVO.setMessage("진료 기록 삭제 오류 발생");
+        }
+
         return dataVO;
     }
 
