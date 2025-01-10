@@ -37,7 +37,8 @@ public class ApiExamSearchNew {
       }
 
       // Naver API URL
-      String apiURL = "https://openapi.naver.com/v1/search/news?query=" + text + "&display=50";
+      // 개수 확인 요망!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      String apiURL = "https://openapi.naver.com/v1/search/news?query=" + text + "&display=100";
 
       log.info("API 요청 URL: {}", apiURL);
 
