@@ -1,4 +1,4 @@
-package com.ict.finalspringboot.domain.boardrecords.controller;
+package com.ict.finalspringboot.domain.userrxtbl.controller;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,26 +24,28 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import com.ict.finalspringboot.domain.boardrecords.service.BoardRecordsService;
-import com.ict.finalspringboot.domain.boardrecords.vo.BoardRecordsVO;
-import com.ict.finalspringboot.domain.boardrecords.vo.DataVO;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ict.finalspringboot.domain.userrxtbl.service.UserRxTblService;
+import com.ict.finalspringboot.domain.userrxtbl.vo.UserRxTblVO;
+import com.ict.finalspringboot.domain.userrxtbl.vo.DataVO;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/boardrecords")
-public class BoardRecordsController {
+@RequestMapping("/userrxtbl")
+public class UserRxTblController {
     @Autowired
-    private BoardRecordsService boardRecordsService;
+    private UserRxTblService userRxTblService;
 
     @GetMapping("/list")
-    public DataVO getBoardRecordsList() {
+    public DataVO getUserRxTblList() {
         DataVO dataVO = new DataVO();
     
         try {
-            log.info("Controller: getBoardRecordsList 호출");
-            List<BoardRecordsVO> list = boardRecordsService.getBoardRecordsList();
+            log.info("Controller: getUserRxTblList 호출");
+            List<UserRxTblVO> list = userRxTblService.getUserRxTblList();
             log.info("Controller: list : " + list);
             dataVO.setSuccess(true);
             dataVO.setMessage("진료 기록 조회 성공");
@@ -59,37 +61,43 @@ public class BoardRecordsController {
     }
     
     @PostMapping("/detail")
-    public DataVO getBoardRecordsDetail(@RequestBody Map<String, String> requestBody) {
+    public DataVO getUserRxTblDetail(@RequestBody Map<String, String> requestBody) {
         DataVO dataVO = new DataVO();
-        String rx_idx = requestBody.get("rx_idx"); // POST 요청 본문에서 rx_idx를 가져옴
+        String post_num = requestBody.get("post_num"); // POST 요청 본문에서 rx_idx를 가져옴
         try {
-            log.info("rx_idx : " + rx_idx);
-            BoardRecordsVO brvo = boardRecordsService.getBoardRecordsById(rx_idx);
-            if (brvo == null) {
+            log.info("post_num : " + post_num);
+            
+            List<UserRxTblVO> urvo = userRxTblService.getUserRxTblById(post_num);
+
+            if (urvo == null) {
+
+                log.info("brvonull1 : " + urvo);
+                log.info("brvonull2 : " + dataVO);
+
                 dataVO.setSuccess(false);
                 dataVO.setMessage("진료 기록 상세보기 실패1");
                 return dataVO;
             }
+
+            log.info("brvoTrue1 : " + urvo);
+            log.info("brvoTrue2 : " + dataVO);
+
             dataVO.setSuccess(true);
             dataVO.setMessage("진료 기록 상세보기 성공");
-            dataVO.setData(brvo);
+            dataVO.setData(urvo);
         } catch (Exception e) {
             dataVO.setSuccess(false);
-            dataVO.setMessage("진료 기록 상세보기 실패2");
+            dataVO.setMessage("진료 기록 상세보기 실패2: " + e.getMessage());
         }
         return dataVO;
-}
+    }
 
-    @DeleteMapping("/delete/{rx_idx}")
-    public DataVO getBoardRecordsDelete(@PathVariable("rx_idx") String rx_idx) {
+    @DeleteMapping("/delete/{post_num}")
+    public DataVO getUserRxTblDelete(@PathVariable("post_num") String post_num) {
         DataVO dataVO = new DataVO();
-        
-        log.info("안녕하세요 " + rx_idx);
-
-        log.info("rx_idx222 : " + rx_idx);
 
         try {
-            int result = boardRecordsService.getBoardRecordsDelete(rx_idx);
+            int result = userRxTblService.getUserRxTblDelete(post_num);
             if (result == 0) {
                 dataVO.setSuccess(false);
                 dataVO.setMessage("진료 기록 삭제 실패");
@@ -106,59 +114,69 @@ public class BoardRecordsController {
         return dataVO;
     }
 
-    @PostMapping("/mybasicboardrecordswrite")
+    @PostMapping("/write")
     public DataVO createBoardRecord(
-        @ModelAttribute("data") BoardRecordsVO brvo,
+        @ModelAttribute("data") String data, UserRxTblVO urvo,
         Authentication authentication) {
-    DataVO dataVO = new DataVO();
-
-            log.info("환영합니다. 사실 환영 못해요ㅜㅜ");
-
-
-            try {
-                // 처리 로직
-                MultipartFile file = brvo.getFile();
-                if (file.isEmpty()) {
-                    brvo.setRx_photo("");
-                } else {
-                    UUID uuid = UUID.randomUUID();
-                    String f_name = uuid.toString() + "_" + file.getOriginalFilename();
-                    brvo.setRx_photo(f_name);
-
-
-                    // Windows 외부 경로 설정
-                    String path = "C:\\upload";
-                    File uploadDir = new File(path);
-                    // application.yml 수정 : file.upload.dir=D:/upload
-
-                    // 프로젝트 내부의 resources/static/upload 경로
-                    // String path = new File("src/main/resources/static/upload").getAbsolutePath();
-
-                    // 디렉토리가 없으면 생성
-                    if (!uploadDir.exists()) {
+    
+        DataVO dataVO = new DataVO();
+    
+        log.info("환영합니다. 사실 환영 못해요ㅜㅜ");
+        
+        // JSON 문자열을 파싱하여 필요한 데이터 추출
+        ObjectMapper objectMapper = new ObjectMapper();
+    
+        try {
+            // JSON 문자열을 Map으로 변환
+            Map<String, Object> payload = objectMapper.readValue(data, new TypeReference<Map<String, Object>>() {});
+    
+            // editorContent 값 추출
+            String editorContent = (String) payload.get("editorContent");
+            System.out.println("Editor Content: " + editorContent); // 로그로 출력
+            
+            // 처리 로직
+            MultipartFile file = urvo.getFile();
+            if (file.isEmpty()) {
+                urvo.setRx_photo("");
+            } else {
+                UUID uuid = UUID.randomUUID();
+                String f_name = uuid.toString() + "_" + file.getOriginalFilename();
+                urvo.setRx_photo(f_name);
+    
+                // Windows 외부 경로 설정
+                String path = "C:\\upload";
+                File uploadDir = new File(path);
+    
+                // 디렉토리가 없으면 생성
+                if (!uploadDir.exists()) {
                     uploadDir.mkdirs();
-                    }
-
-                    // 파일 저장
-                    file.transferTo(new File(uploadDir, f_name));
                 }
-
-                // 게스트북 쓰기
-                int result = boardRecordsService.getBoardRecordsWrite(brvo);
-
-                if (result == 0) {
-                    dataVO.setSuccess(false);
-                    dataVO.setMessage("게스트북 쓰기 실패");
-                    return dataVO;
-                }
-                dataVO.setSuccess(true);
-                dataVO.setMessage("게스트북 쓰기 성공");
-                 // dataVO.setData(result);
-            } catch (Exception e) {
-                log.error("오류 발생:", e);
+    
+                // 파일 저장
+                file.transferTo(new File(uploadDir, f_name));
             }
-
-            return dataVO;
+    
+            // 게스트북 쓰기
+            int result = userRxTblService.getUserRxTblWrite(urvo);
+    
+            if (result == 0) {
+                dataVO.setSuccess(false);
+                dataVO.setMessage("게스트북 쓰기 실패");
+                return dataVO;
+            }
+            
+            // 성공 시 editorContent를 DataVO에 설정
+            dataVO.setSuccess(true);
+            dataVO.setMessage("게스트북 쓰기 성공");
+            // dataVO.setData(result); // 필요 시 추가
+    
+        } catch (Exception e) {
+            log.error("오류 발생:", e);
+            dataVO.setSuccess(false);
+            dataVO.setMessage("오류 발생: " + e.getMessage());
+        }
+    
+        return dataVO;
     }
 
     // 업로드 경로 설정

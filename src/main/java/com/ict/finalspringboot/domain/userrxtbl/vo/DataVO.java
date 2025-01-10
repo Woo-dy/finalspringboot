@@ -1,4 +1,4 @@
-package com.ict.finalspringboot.domain.boardrecords.vo;
+package com.ict.finalspringboot.domain.userrxtbl.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

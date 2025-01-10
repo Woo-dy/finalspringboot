@@ -36,6 +36,8 @@ dependencies {
 	testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.4'
 
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.json:json:20210307'
+	implementation 'org.jsoup:jsoup:1.15.3' // 최신 버전으로 변경 가능
 
 	// 0.11.5
 	// SNS 로그인 처리

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<!-- namespacesms 반드시 mapper 위치로 설정해야 된다. -->
+<mapper namespace="com.ict.finalspringboot.domain.userrxtbl.mapper.UserRxTblMapper">
+	<select id="getUserRxTblList" resultType="UserRxTblVO">
+		SELECT post_num, MIN(user_idx) AS user_idx, MIN(rx_date) AS rx_date, MIN(rx_phar_name) AS rx_phar_name, 
+			MIN(drug_idx) AS drug_idx, MIN(phar_idx) AS phar_idx, MIN(rx_other) AS rx_other, 
+			MIN(rx_photo) AS rx_photo
+		FROM user_rx_tbl 
+		GROUP BY post_num 
+		ORDER BY post_num ASC
+	</select>
+
+	<select id="getUserRxTblById" parameterType="String" resultType="UserRxTblVO">
+		select * from user_rx_tbl where post_num = #{post_num}
+	</select>
+
+	<delete id="getUserRxTblDelete" parameterType="String">
+		delete from user_rx_tbl where post_num = #{post_num}
+	</delete>
+	
+	<update id="getUserRxTblUpdate" parameterType="UserRxTblVO">
+		update user_rx_tbl
+		set user_idx = #{user_idx},rx_date=#{rx_date}, rx_phar_name=#{rx_phar_name}, drug_idx=#{drug_idx}, phar_idx=#{phar_idx}, rx_other=#{rx_other}, rx_photo=#{rx_photo}
+		where rx_idx = #{rx_idx}
+	</update>
+</mapper>
+
+
+
+
+
+
