@@ -3,13 +3,18 @@ package com.ict.finalspringboot.domain.newsapicontroller;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -17,14 +22,18 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
 @RequestMapping("/api")
 public class ApiExamSearchNew {
 
+   private static final String DEFAULT_THUMBNAIL_URL = "https://example.com/default-thumbnail.jpg";
+
    @GetMapping("/searchNews")
-   public List<Map<String, String>> searchNew() {
+   public CompletableFuture<List<Map<String, String>>> searchNew() {
       log.info("searchNews--------------------");
       String clientId = "sbwKnTVcaUBjn1A9TRaN"; // 애플리케이션 클라이언트 아이디
       String clientSecret = "I4mc5hlxSi"; // 애플리케이션 클라이언트 시크릿
@@ -48,36 +57,41 @@ public class ApiExamSearchNew {
 
       // API 호출 및 크롤링 데이터 추가
       String response = get(apiURL, requestHeaders);
-      return parseNewsWithThumbnails(response);
+      return parseNewsWithThumbnailsAsync(response);
    }
 
    // 뉴스 데이터 파싱 및 썸네일 추가
-   private List<Map<String, String>> parseNewsWithThumbnails(String responseBody) {
-      List<Map<String, String>> newsList = new ArrayList<>();
+   private CompletableFuture<List<Map<String, String>>> parseNewsWithThumbnailsAsync(String responseBody) {
+      List<CompletableFuture<Map<String, String>>> futures = new ArrayList<>();
       org.json.JSONObject jsonObject = new org.json.JSONObject(responseBody);
       org.json.JSONArray items = jsonObject.getJSONArray("items");
 
       for (int i = 0; i < items.length(); i++) {
          org.json.JSONObject item = items.getJSONObject(i);
 
-         Map<String, String> newsItem = new HashMap<>();
-         newsItem.put("title", item.getString("title"));
-         newsItem.put("link", item.getString("link"));
-         newsItem.put("originallink", item.getString("originallink"));
-         newsItem.put("description", item.getString("description"));
-         newsItem.put("author", item.optString("author", "정보 없음"));
+         CompletableFuture<Map<String, String>> newsItemFuture = fetchThumbnail(item.getString("originallink"))
+            .thenApply(thumbnail -> {
+               Map<String, String> newsItem = new HashMap<>();
+               newsItem.put("title", item.getString("title"));
+               newsItem.put("link", item.getString("link"));
+               newsItem.put("originallink", item.getString("originallink"));
+               newsItem.put("description", item.getString("description"));
+               newsItem.put("author", item.optString("author", "정보 없음"));
+               String pubDate = item.optString("pubDate", "날짜 없음");
+               newsItem.put("date", formatPubDate(pubDate));
+               newsItem.put("thumbnail", thumbnail);
+               return newsItem;
+            });
 
-         String pubDate = item.optString("pubDate", "날짜 없음");
-         newsItem.put("date", formatPubDate(pubDate));
-
-         // 썸네일 크롤링
-         String thumbnail = fetchThumbnail(item.getString("originallink"));
-         newsItem.put("thumbnail", thumbnail);
-
-         newsList.add(newsItem);
-      }
-      return newsList;
+         futures.add(newsItemFuture);
    }
+
+      return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+         .thenApply(v -> futures.stream()
+            .map(CompletableFuture::join)
+            .collect(Collectors.toList()));
+   }
+
 
    
    // pubDate를 "2024.12.12 화요일" 형식으로 변환하는 메서드
@@ -97,14 +111,15 @@ public class ApiExamSearchNew {
    }
 
    // OG 이미지 크롤링 메서드
-   private String fetchThumbnail(String url) {
+   @Async
+   private CompletableFuture<String> fetchThumbnail(String url) {
       try {
          Document doc = Jsoup.connect(url).get();
          Element ogImage = doc.selectFirst("meta[property=og:image]");
-         return ogImage != null ? ogImage.attr("content") : "https://example.com/default-thumbnail.jpg"; // 기본 썸네일
+         return CompletableFuture.completedFuture(ogImage != null ? ogImage.attr("content") : "https://example.com/default-thumbnail.jpg"); // 기본 썸네일
       } catch (IOException e) {
          log.error("OG 이미지 크롤링 실패: {}", url, e);
-         return "https://example.com/default-thumbnail.jpg"; // 기본 썸네일
+         return CompletableFuture.completedFuture(DEFAULT_THUMBNAIL_URL); // 기본 썸네일
       }
    }
 
