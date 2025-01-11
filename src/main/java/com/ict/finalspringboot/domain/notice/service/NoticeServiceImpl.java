@@ -20,8 +20,7 @@ public class NoticeServiceImpl implements NoticeService {
 
    @Override
    public NoticeVO getNoticeDetail(String notice_idx) {
-      // TODO Auto-generated method stub
-      throw new UnsupportedOperationException("Unimplemented method 'getNoticeDetail'");
+      return noticeMapper.getNoticeDetail(notice_idx);
    }
 
    @Override

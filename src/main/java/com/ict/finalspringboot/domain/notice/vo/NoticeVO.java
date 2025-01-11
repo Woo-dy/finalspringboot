@@ -19,4 +19,5 @@ public class NoticeVO {
    private String notice_file_name = null;
    private int notice_delete = 0;
    private LocalDate notice_out_date = null;
+   private String notice_check = "";
 }

@@ -10,4 +10,5 @@ import org.apache.ibatis.annotations.Mapper;
 public interface NoticeMapper {
    // 공지 리스트
    List<NoticeVO> getNoticeList();
+   NoticeVO getNoticeDetail(String notice_idx);
 }

@@ -9,6 +9,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 	<select id="getNoticeList" resultType="NoticeVO">
 		select * from board_db.notice_tbl order by notice_idx asc
 	</select>
+
+	<select id="getNoticeDetail" parameterType="String"  resultType="NoticeVO" >
+		select * from board_db.notice_tbl where notice_idx = #{notice_idx}
+	</select>
 </mapper>
 
 
